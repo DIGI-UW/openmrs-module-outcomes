@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+ 
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
+                  http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+
+	<!-- Make the Questionaire class persistable, see also Questionaire and OutcomesDaoTest -->
+
+	<changeSet id="outcomes-2024-04-26-13-22" author="miirochristopher">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="outcomes_questionaire"/>
+			</not>
+		</preConditions>
+		<comment>
+			Creating the outcomes_questionaire table
+		</comment>
+		<createTable tableName="outcomes_questionaire">
+			<column name="questionaire_id" type="int" autoIncrement="true">
+				<constraints primaryKey="true" nullable="false"/>
+			</column>
+			<column name="uuid" type="char(38)">
+				<constraints nullable="false" unique="true"/>
+			</column>
+			<column name="pollster" type="int" />
+			<column name="respondent" type="int" />
+			<column name="description" type="varchar(255)" />
+		</createTable>
+		<addForeignKeyConstraint constraintName="questionaire_pollster_fk"
+		                         baseTableName="outcomes_questionaire"
+		                         baseColumnNames="pollster"
+		                         referencedTableName="users"
+		                         referencedColumnNames="user_id" />
+
+		<addForeignKeyConstraint constraintName="questionaire_respondent_fk"
+		                         baseTableName="outcomes_questionaire"
+		                         baseColumnNames="respondent"
+		                         referencedTableName="person"
+		                         referencedColumnNames="person_id" />
+	</changeSet>
+
+	<changeSet id="outcomes-2024-04-25-12-21" author="miirochristopher">
+		<preConditions onFail="MARK_RAN">
+			<not>
+				<tableExists tableName="outcome_questions"/>
+			</not>
+		</preConditions>
+		<comment>
+			Creating the outcome_questions table
+		</comment>
+		<createTable tableName="outcome_questions">
+			<column name="question_id" type="int"/>
+			<column name="questionaire_item_type" type="varchar(255)"/>
+			<column name="questionaire_questions" type="varchar(255)"/>
+		</createTable>
+		<addForeignKeyConstraint constraintName="questionaire_questions_fk"
+		                         baseTableName="outcome_questions"
+		                         baseColumnNames="question_id"
+		                         referencedTableName="outcomes_questionnaire"
+		                         referencedColumnNames="questionaire_id"/>
+	</changeSet>
+</databaseChangeLog>
