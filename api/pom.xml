@@ -79,6 +79,6 @@
 
 	<artifactId>outcomes-api</artifactId>
 	<packaging>jar</packaging>
-	<name>Outcomes API</name>
+	<name>Patient Reported Outcomes API</name>
 	<description>API for outcomes</description>
 </project>

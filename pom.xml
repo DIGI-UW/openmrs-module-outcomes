@@ -10,7 +10,7 @@
 	<artifactId>outcomes</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
-	<name>outcomes</name>
+	<name>Patient Reported Outcomes</name>
 	<description>Provides an API for persisting and retrieving Questionnaires </description>
 
 	<url>https://wiki.openmrs.org/x/FQ4z</url>

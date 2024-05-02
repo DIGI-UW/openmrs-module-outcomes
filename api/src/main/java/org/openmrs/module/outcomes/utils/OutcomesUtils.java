@@ -13,6 +13,7 @@ import org.openmrs.module.emrapi.visit.VisitDomainWrapper;
 import org.openmrs.util.OpenmrsUtil;
 
 import java.text.Format;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -43,6 +44,23 @@ public class OutcomesUtils {
 	public static String formatDateWithoutTime(Date date, String format) {
 		Format formatter = new SimpleDateFormat(format);
 		return formatter.format(date);
+	}
+	
+	public static String formatDateWithTime(Date date) {
+		Format formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		return formatter.format(date);
+	}
+	
+	public static Date formatDateFromString(String date, String format) throws ParseException {
+		return new SimpleDateFormat(format).parse(date);
+	}
+	
+	public static Date formatDateFromStringWithTime(String date) throws ParseException {
+		return new SimpleDateFormat("yyyy-MM-dd HH:mm a").parse(date);
+	}
+	
+	public static Date formatFullDateFromStringWithTime(String date) throws ParseException {
+		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(date);
 	}
 	
 	public static ConceptAnswer getAnswerConcept(Set<ConceptAnswer> conceptAnswers,

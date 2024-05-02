@@ -9,7 +9,7 @@
 
 	<artifactId>outcomes-omod</artifactId>
 	<packaging>jar</packaging>
-	<name>Outcomes OMOD</name>
+	<name>Patient Reported Outcomes OMOD</name>
 	<description>Omod submodule for outcomes</description>
 
 	<dependencies>
