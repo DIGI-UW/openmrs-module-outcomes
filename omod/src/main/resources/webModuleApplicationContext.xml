@@ -8,8 +8,4 @@
   		    http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
 	<context:component-scan base-package="org.openmrs.module.outcomes.web" />
-
-	<bean class="org.openmrs.ui.framework.StandardModuleUiConfiguration">
-		<property name="moduleId" value="${project.parent.artifactId}"/>
-	</bean>
 </beans>

@@ -1,15 +1,24 @@
 package org.openmrs.module.outcomes.utils;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.openmrs.Concept;
 import org.openmrs.ConceptAnswer;
+import org.openmrs.Encounter;
+import org.openmrs.EncounterRole;
+import org.openmrs.EncounterType;
 import org.openmrs.Location;
+import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.Person;
+import org.openmrs.Provider;
+import org.openmrs.User;
 import org.openmrs.Visit;
+import org.openmrs.VisitType;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Context;
-import org.openmrs.module.emrapi.adt.AdtService;
-import org.openmrs.module.emrapi.visit.VisitDomainWrapper;
+import org.openmrs.module.outcomes.OutcomesConstants;
 import org.openmrs.util.OpenmrsUtil;
 
 import java.text.Format;
@@ -18,28 +27,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class OutcomesUtils {
 	
 	private static final LocationService locationService = Context.getLocationService();
 	
-	static Logger logger = Logger.getLogger(OutcomesUtils.class.getName());
-	
-	public static Visit getPatientActiveVisit(Patient patient, Location location, boolean ensureActive) {
-		Visit currentVisit;
-		AdtService adtService = Context.getService(AdtService.class);
-		if (ensureActive) {
-			currentVisit = adtService.ensureActiveVisit(patient, location);
-		} else {
-			VisitDomainWrapper wrapper = adtService.getActiveVisit(patient, location);
-			currentVisit = wrapper == null ? null : wrapper.getVisit();
-		}
-		return currentVisit;
-	}
+	protected static final Log log = LogFactory.getLog(OutcomesUtils.class);
 	
 	public static String formatDateWithoutTime(Date date, String format) {
 		Format formatter = new SimpleDateFormat(format);
@@ -63,17 +56,6 @@ public class OutcomesUtils {
 		return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S").parse(date);
 	}
 	
-	public static ConceptAnswer getAnswerConcept(Set<ConceptAnswer> conceptAnswers,
-	        Predicate<ConceptAnswer> educationLevelPredicate) {
-		ConceptAnswer conceptAnswer = new ConceptAnswer();
-		for (ConceptAnswer concept : conceptAnswers) {
-			if (educationLevelPredicate.test(concept)) {
-				conceptAnswer = concept;
-			}
-		}
-		return conceptAnswer;
-	}
-	
 	public static Concept getConcept(String lookup) {
 		Concept concept = Context.getConceptService().getConceptByUuid(lookup);
 		if (concept == null) {
@@ -93,7 +75,7 @@ public class OutcomesUtils {
 				concept = Context.getConceptService().getConcept(Integer.parseInt(lookup));
 			}
 			catch (Exception e) {
-				logger.log(Level.WARNING, lookup, e);
+				log.info(e);
 			}
 		}
 		return concept;
@@ -143,5 +125,67 @@ public class OutcomesUtils {
 			        : currentlocation;
 		}
 		return currentlocation;
+	}
+	
+	public static Encounter createEncounter(Patient patient, EncounterType encounterType, Visit visit) {
+		Encounter encounter = null;
+		try {
+			User user = Context.getAuthenticatedUser();
+			if (user != null) {
+				Location location = locationService.getLocationByUuid(OutcomesConstants.UNKNOWN_LOCATION_UUID);
+				if (visit != null) {
+					encounter = new Encounter();
+					encounter.setEncounterType(encounterType);
+					encounter.setCreator(user);
+					encounter.setProvider(getDefaultEncounterRole(), getProvider(user.getPerson()));
+					encounter.setPatient(patient);
+					encounter.setLocation(location);
+					encounter.setEncounterDatetime(new Date());
+					encounter.setVisit(visit);
+					Context.getEncounterService().saveEncounter(encounter);
+				}
+			}
+		}
+		catch (Exception ex) {
+			log.info("Failed to create encounter!");
+		}
+		return encounter;
+	}
+	
+	public static EncounterRole getDefaultEncounterRole() {
+		return Context.getEncounterService().getEncounterRoleByUuid(OutcomesConstants.UNKNOWN_ENCOUNTER_ROLE_UUID);
+	}
+	
+	public static Provider getProvider(Person person) {
+		Provider provider = null;
+		List<Provider> providerList = new ArrayList<>(Context.getProviderService()
+				.getProvidersByPerson(person));
+		if (!providerList.isEmpty()) {
+			provider = providerList.get(0);
+		}
+		return provider;
+	}
+	
+	public static Obs createObs(Encounter encounter, Concept question, Concept conceptAnswer) {
+		Obs obs = new Obs();
+		obs.setPerson(encounter.getPatient());
+		obs.setLocation(encounter.getLocation());
+		obs.setCreator(encounter.getCreator());
+		obs.setDateCreated(encounter.getDateCreated());
+		obs.setEncounter(encounter);
+		obs.setObsDatetime(encounter.getEncounterDatetime());
+		if (question != null && conceptAnswer != null) {
+			obs.setConcept(question);
+			obs.setValueCoded(conceptAnswer);
+			Context.getObsService().saveObs(obs, "Saved obs!");
+		}
+		return obs;
+	}
+	
+	public static Visit createVisit(Patient patient, VisitType visitType, Date startTime) {
+		Visit visit = new Visit(patient, visitType, startTime);
+		Location location = locationService.getLocationByUuid(OutcomesConstants.UNKNOWN_LOCATION_UUID);
+		visit.setLocation(location);
+		return Context.getVisitService().saveVisit(visit);
 	}
 }

@@ -53,49 +53,7 @@
 				<version>${legacyUiVersion}</version>
 				<scope>provided</scope>
 			</dependency>
-
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>emrapi-api</artifactId>
-				<version>${emrapiVersion}</version>
-				<scope>provided</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>emrapi-api-1.12</artifactId>
-				<version>${emrapiVersion}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>emrapi-api-2.2</artifactId>
-				<version>${emrapiVersion}</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>emrapi-api-pre2.2</artifactId>
-				<version>${emrapiVersion}</version>
-				<scope>test</scope>
-			</dependency>
 			
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>serialization.xstream-api</artifactId>
-				<version>${serializationxstreamVersion}</version>
-				<scope>provided</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>serialization.xstream-api-2.0</artifactId>
-				<version>${serializationxstreamVersion}</version>
-				<scope>test</scope>
-			</dependency>
-
 			<dependency>
 				<groupId>org.projectlombok</groupId>
 				<artifactId>lombok</artifactId>
@@ -133,46 +91,18 @@
 				<type>pom</type>
 				<scope>test</scope>
 			</dependency>
+
 			<dependency>
 				<groupId>org.openmrs.module</groupId>
 				<artifactId>webservices.rest-omod</artifactId>
 				<version>${webservices.restModuleVersion}</version>
 				<scope>provided</scope>
 			</dependency>
-
-			<dependency>
-				<groupId>org.openmrs.module</groupId>
-				<artifactId>webservices.rest-omod-common</artifactId>
-				<version>${webservices.restModuleVersion}</version>
-				<scope>provided</scope>
-				<type>test-jar</type>
-			</dependency>
-
-			<!-- https://mvnrepository.com/artifact/org.freemarker/freemarker -->
-			<dependency>
-				<groupId>org.freemarker</groupId>
-				<artifactId>freemarker</artifactId>
-				<version>2.3.30</version>
-			</dependency>
-
+			
 			<dependency>
 				<groupId>com.sun.mail</groupId>
 				<artifactId>javax.mail</artifactId>
 				<version>1.5.5</version>
-			</dependency>
-
-			<dependency>
-				<groupId>javax.el</groupId>
-				<artifactId>javax.el-api</artifactId>
-				<version>2.2.4</version>
-				<scope>test</scope>
-			</dependency>
-
-			<dependency>
-				<groupId>org.glassfish.web</groupId>
-				<artifactId>javax.el</artifactId>
-				<version>2.2.4</version>
-				<scope>test</scope>
 			</dependency>
 
 		</dependencies>
@@ -240,8 +170,6 @@
 	<properties>
 		<openMRSVersion>2.5.0</openMRSVersion>
 		<legacyUiVersion>1.8.4</legacyUiVersion>
-		<emrapiVersion>1.32.0</emrapiVersion>
-		<serializationxstreamVersion>0.2.16</serializationxstreamVersion>
-		<webservices.restModuleVersion>2.33.0</webservices.restModuleVersion>
+		<webservices.restModuleVersion>2.40.0</webservices.restModuleVersion>
 	</properties>
 </project>

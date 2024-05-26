@@ -52,10 +52,7 @@ public class OutcomesResource extends DataDelegatingCrudResource<Questionaire> {
 		if (representation instanceof DefaultRepresentation) {
 			DelegatingResourceDescription description = new DelegatingResourceDescription();
 			description.addProperty("uuid");
-			description.addProperty("pollster");
-			description.addProperty("description");
-			description.addProperty("respondent", Representation.FULL);
-			description.addProperty("questions", Representation.FULL);
+			description.addProperty("resource", Representation.FULL);
 			description.addSelfLink();
 			description.addLink("full", ".?v=" + RestConstants.REPRESENTATION_FULL);
 			return description;
@@ -69,10 +66,7 @@ public class OutcomesResource extends DataDelegatingCrudResource<Questionaire> {
 	private static DelegatingResourceDescription getDelegatingResourceDescription() {
 		DelegatingResourceDescription description = new DelegatingResourceDescription();
 		description.addProperty("uuid");
-		description.addProperty("pollster");
-		description.addProperty("description");
-		description.addProperty("respondent", Representation.FULL);
-		description.addProperty("questions", Representation.FULL);
+		description.addProperty("resource", Representation.FULL);
 		description.addSelfLink();
 		return description;
 	}

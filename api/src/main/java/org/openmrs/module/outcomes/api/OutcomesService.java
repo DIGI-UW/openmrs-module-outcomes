@@ -9,10 +9,8 @@
  */
 package org.openmrs.module.outcomes.api;
 
-import org.openmrs.annotation.Authorized;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
-import org.openmrs.module.outcomes.OutcomesConfig;
 import org.openmrs.module.outcomes.Questionaire;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,7 +24,6 @@ public interface OutcomesService extends OpenmrsService {
 	 * Returns a Questionaire by uuid. It can be called by any authenticated user. It is fetched in
 	 * read only transaction.
 	 */
-	@Authorized()
 	@Transactional(readOnly = true)
 	Questionaire getQuestionnaireByUuid(String uuid) throws APIException;
 	
@@ -34,21 +31,18 @@ public interface OutcomesService extends OpenmrsService {
 	 * Saves a Questionaire. Sets the owner to superuser, if it is not set. It can be called by
 	 * users with this module's privilege. It is executed in a transaction.
 	 */
-	@Authorized(OutcomesConfig.MODULE_PRIVILEGE)
 	@Transactional
 	Questionaire saveQuestionnaire(Questionaire questionaire) throws APIException;
 	
 	/**
 	 * Voids a Questionaire. It can be called by users with this module's privilege
 	 */
-	@Authorized(OutcomesConfig.MODULE_PRIVILEGE)
 	@Transactional
 	Questionaire voidQuestionnaire(Questionaire questionaire, String reason) throws APIException;
 	
 	/**
 	 * Voids a Questionaire. It can be called by users with this module's privilege
 	 */
-	@Authorized(OutcomesConfig.MODULE_PRIVILEGE)
 	@Transactional
 	void purgeQuestionnaire(Questionaire questionaire) throws APIException;
 }
