@@ -19,6 +19,7 @@ import org.openmrs.VisitType;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Context;
 import org.openmrs.module.outcomes.OutcomesConstants;
+import org.openmrs.obs.ComplexData;
 import org.openmrs.util.OpenmrsUtil;
 
 import java.text.Format;
@@ -177,6 +178,22 @@ public class OutcomesUtils {
 		if (question != null && conceptAnswer != null) {
 			obs.setConcept(question);
 			obs.setValueCoded(conceptAnswer);
+			Context.getObsService().saveObs(obs, "Saved obs!");
+		}
+		return obs;
+	}
+	
+	public static Obs createComplexObs(Encounter encounter, Concept question, ComplexData complexData) {
+		Obs obs = new Obs();
+		obs.setPerson(encounter.getPatient());
+		obs.setLocation(encounter.getLocation());
+		obs.setCreator(encounter.getCreator());
+		obs.setDateCreated(encounter.getDateCreated());
+		obs.setEncounter(encounter);
+		obs.setObsDatetime(encounter.getEncounterDatetime());
+		if (question != null && complexData != null) {
+			obs.setConcept(question);
+			obs.setComplexData(complexData);
 			Context.getObsService().saveObs(obs, "Saved obs!");
 		}
 		return obs;

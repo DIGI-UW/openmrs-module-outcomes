@@ -40,4 +40,6 @@ public class QuestionaireResource implements Serializable {
 	public String tinglingPinsAndNeedles;
 	
 	public String difficultySleeping;
+	
+	public Photo[] photo;
 }

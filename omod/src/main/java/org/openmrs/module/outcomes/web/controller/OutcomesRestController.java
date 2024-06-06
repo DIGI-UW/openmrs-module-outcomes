@@ -1,6 +1,7 @@
 package org.openmrs.module.outcomes.web.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.apache.commons.lang3.StringUtils;
@@ -8,6 +9,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Encounter;
 import org.openmrs.EncounterType;
+import org.openmrs.Obs;
 import org.openmrs.Patient;
 import org.openmrs.Visit;
 import org.openmrs.VisitType;
@@ -21,6 +23,7 @@ import org.openmrs.module.outcomes.api.OutcomesService;
 import org.openmrs.module.outcomes.api.resource.QuestionaireResource;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
+import org.openmrs.obs.ComplexData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,9 +35,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.validation.Valid;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 
+import static org.openmrs.module.outcomes.utils.OutcomesUtils.createComplexObs;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createEncounter;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createObs;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createVisit;
@@ -63,7 +70,30 @@ public class OutcomesRestController extends MainResourceController {
 	@RequestMapping(value = "/questionnaire/{questionnaireUuid}", method = RequestMethod.GET)
 	public ResponseEntity<String> getQuestionnaire(@PathVariable String questionnaireUuid) {
 		Questionaire questionaire = outcomesService.getQuestionnaireByUuid(Objects.requireNonNull(questionnaireUuid));
-		return new ResponseEntity<>(questionaire != null ? questionaire.getResource() : "", HttpStatus.OK);
+		return new ResponseEntity<>(questionaire != null ? questionaire.getResource() : null, HttpStatus.OK);
+	}
+	
+	@RequestMapping(value = "/questionnaire/{patientId}", method = RequestMethod.GET)
+	public ResponseEntity<Double> getQuickDashDisabilityScore(@PathVariable Integer patientId) {
+		Double dashScore = null;
+		if (patientId != null) {
+			Patient patient = patientService.getPatient(patientId);
+			EncounterType questionnaireEncounterType = encounterService.getEncounterTypeByUuid(
+					OutcomesConstants.QUESTIONNAIRE_ENCOUNTER_TYPE_UUID);
+			Optional<Encounter> encounter = encounterService.getEncountersByPatient(patient).stream()
+					.filter(theEncounter -> theEncounter.getEncounterType()
+							.equals(questionnaireEncounterType))
+					.max(Comparator.comparing(Encounter::getEncounterDatetime));
+			if (encounter.isPresent()) {
+				Set<Obs> obsSet = encounter.get().getAllObs(false);
+				int numberOfResponses = obsSet.size();
+				if (numberOfResponses >= 3) {
+					int score = ((numberOfResponses - 1) / numberOfResponses) * 25;
+					dashScore = (double) score;
+				}
+			}
+		}
+		return new ResponseEntity<>(dashScore, HttpStatus.OK);
 	}
 	
 	@RequestMapping(value = "/questionnaire", method = RequestMethod.POST, consumes="application/json")
@@ -133,6 +163,21 @@ public class OutcomesRestController extends MainResourceController {
 
 				if (StringUtils.isNotEmpty(questionaireResource.getDifficultySleeping())) {
 					createObs(questionnaireEncounter, getConcept(OutcomesConstants.DIFFICULTY_SLEEPING_CONCEPT_UUID), getConcept(questionaireResource.getDifficultySleeping()));
+				}
+
+				if (!Objects.isNull(questionaireResource.getPhoto())) {
+					String json = mapper.writeValueAsString(questionaireResource);
+					ComplexData complexImageData = null;
+					try {
+						JsonNode nodes = mapper.readTree(json).get("photo");
+						for (JsonNode node : nodes) {
+							complexImageData = new ComplexData(node.get("name").asText(), node.get("content"));
+						}
+					}
+					catch (JsonProcessingException e) {
+						throw new RuntimeException(e);
+					}
+					createComplexObs(questionnaireEncounter, getConcept(OutcomesConstants.INJURY_PHOTO_CONCEPT_UUID), complexImageData);
 				}
 			}
 		}
