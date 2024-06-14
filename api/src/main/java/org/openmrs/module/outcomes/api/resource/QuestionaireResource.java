@@ -17,7 +17,7 @@ import java.io.Serializable;
 @JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 public class QuestionaireResource implements Serializable {
 	
-	public Integer patientId;
+	public String guid;
 	
 	public String openTightJar;
 	

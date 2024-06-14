@@ -35,4 +35,6 @@ public class OutcomesConstants {
 	public static final String DIFFICULTY_SLEEPING_CONCEPT_UUID = "410b15e6-9038-440c-a88e-74872ede3d84";
 	
 	public static final String INJURY_PHOTO_CONCEPT_UUID = "7c06583b-a425-44eb-b4f5-ac63332c00a2";
+	
+	public static final String GUID_PERSON_ATTRIBUTE_TYPE = "5e6f7ceb-ca89-403b-bd03-3fb6e81788d0";
 }

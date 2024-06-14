@@ -9,12 +9,16 @@
 package org.openmrs.module.outcomes.api.impl;
 
 import lombok.Setter;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.api.APIException;
 import org.openmrs.api.impl.BaseOpenmrsService;
 import org.openmrs.module.outcomes.Questionaire;
 import org.openmrs.module.outcomes.api.OutcomesService;
 import org.openmrs.module.outcomes.api.dao.OutcomesDao;
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 @Setter
 public class OutcomesServiceImpl extends BaseOpenmrsService implements OutcomesService {
@@ -47,5 +51,11 @@ public class OutcomesServiceImpl extends BaseOpenmrsService implements OutcomesS
 	@Override
 	public void purgeQuestionnaire(Questionaire questionaire) throws APIException {
 		dao.deleteQuestionnaire(questionaire);
+	}
+	
+	@Override
+	public Patient getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values)
+	        throws APIException {
+		return dao.getPatientHavingPersonAttributes(attributeType, values);
 	}
 }

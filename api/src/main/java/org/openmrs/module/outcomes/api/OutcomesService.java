@@ -9,10 +9,14 @@
  */
 package org.openmrs.module.outcomes.api;
 
+import org.openmrs.Patient;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
 import org.openmrs.module.outcomes.Questionaire;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * The main service of this module, which is exposed for other modules. See
@@ -45,4 +49,11 @@ public interface OutcomesService extends OpenmrsService {
 	 */
 	@Transactional
 	void purgeQuestionnaire(Questionaire questionaire) throws APIException;
+	
+	/**
+	 * Get patients having person attributes of a particular type or that contain certain values.
+	 * 
+	 * @return patient matching the query
+	 */
+	Patient getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values) throws APIException;
 }

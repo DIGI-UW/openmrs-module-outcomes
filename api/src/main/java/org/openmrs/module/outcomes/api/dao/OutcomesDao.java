@@ -9,15 +9,24 @@
  */
 package org.openmrs.module.outcomes.api.dao;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
+import org.openmrs.Patient;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.api.db.hibernate.DbSession;
 import org.openmrs.api.db.hibernate.DbSessionFactory;
 import org.openmrs.module.outcomes.Questionaire;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository("outcomes.OutcomesDao")
 public class OutcomesDao {
+	
+	protected final Log log = LogFactory.getLog(getClass());
 	
 	@Autowired
 	DbSessionFactory sessionFactory;
@@ -38,5 +47,40 @@ public class OutcomesDao {
 	
 	public void deleteQuestionnaire(Questionaire questionaire) {
 		getSession().delete(questionaire);
+	}
+	
+	public Patient getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values) {
+		StringBuilder sqlQuery = new StringBuilder();
+		sqlQuery.append("SELECT patient.patient_id ");
+		sqlQuery.append("FROM person_attribute ");
+		sqlQuery.append("INNER JOIN patient ON patient.patient_id = person_attribute.person_id ");
+		sqlQuery.append("INNER JOIN person ON person.person_id = person_attribute.person_id ");
+		sqlQuery.append("WHERE person_attribute.voided = false ");
+		sqlQuery.append("AND person.voided = false ");
+		sqlQuery.append("AND patient.voided = false ");
+		if (attributeType != null)
+			sqlQuery.append(" AND person_attribute.person_attribute_type_id = :attributeType ");
+		
+		if (values != null && !values.isEmpty()) {
+			if (values.size() == 1) {
+				sqlQuery.append(" AND person_attribute.value = :value");
+			} else {
+				sqlQuery.append(" AND person_attribute.value in (:values) ");
+			}
+		}
+		sqlQuery.append(" GROUP BY patient.patient_id ");
+		log.debug("query: " + sqlQuery);
+		Query query = sessionFactory.getCurrentSession().createSQLQuery(sqlQuery.toString());
+		if (attributeType != null)
+			query.setInteger("attributeType", attributeType.getPersonAttributeTypeId());
+		
+		if (values != null && !values.isEmpty()) {
+			if (values.size() == 1) {
+				query.setString("value", values.get(0));
+			} else if (!values.isEmpty()) {
+				query.setParameterList("values", values);
+			}
+		}
+		return (Patient) query.uniqueResult();
 	}
 }

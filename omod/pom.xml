@@ -107,6 +107,12 @@
 			<scope>provided</scope>
 		</dependency>
 		
+		<dependency>
+			<groupId>com.github.clicksend</groupId>
+			<artifactId>clicksend-java-client</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		
 	</dependencies>
 	
 	<build>

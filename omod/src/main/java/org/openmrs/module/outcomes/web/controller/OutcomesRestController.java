@@ -1,5 +1,10 @@
 package org.openmrs.module.outcomes.web.controller;
 
+import ClickSend.Api.SmsApi;
+import ClickSend.ApiClient;
+import ClickSend.ApiException;
+import ClickSend.Model.SmsMessage;
+import ClickSend.Model.SmsMessageCollection;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,16 +16,21 @@ import org.openmrs.Encounter;
 import org.openmrs.EncounterType;
 import org.openmrs.Obs;
 import org.openmrs.Patient;
+import org.openmrs.Person;
+import org.openmrs.PersonAttribute;
+import org.openmrs.PersonAttributeType;
 import org.openmrs.Visit;
 import org.openmrs.VisitType;
 import org.openmrs.api.APIException;
 import org.openmrs.api.EncounterService;
 import org.openmrs.api.PatientService;
+import org.openmrs.api.PersonService;
 import org.openmrs.api.VisitService;
 import org.openmrs.module.outcomes.OutcomesConstants;
 import org.openmrs.module.outcomes.Questionaire;
 import org.openmrs.module.outcomes.api.OutcomesService;
 import org.openmrs.module.outcomes.api.resource.QuestionaireResource;
+import org.openmrs.module.outcomes.request.MessageRequest;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
 import org.openmrs.obs.ComplexData;
@@ -35,8 +45,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -65,6 +78,12 @@ public class OutcomesRestController extends MainResourceController {
 	@Autowired
 	private OutcomesService outcomesService;
 	
+	@Autowired
+	private PersonService personService;
+	
+	@Autowired
+	private ApiClient clickSendConfig;
+	
 	ObjectMapper mapper = new ObjectMapper().configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 	
 	@RequestMapping(value = "/questionnaire/{questionnaireUuid}", method = RequestMethod.GET)
@@ -73,11 +92,11 @@ public class OutcomesRestController extends MainResourceController {
 		return new ResponseEntity<>(questionaire != null ? questionaire.getResource() : null, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/questionnaire/{patientId}", method = RequestMethod.GET)
-	public ResponseEntity<Double> getQuickDashDisabilityScore(@PathVariable Integer patientId) {
+	@RequestMapping(value = "/questionnaire/{patientUuid}", method = RequestMethod.GET)
+	public ResponseEntity<Double> getQuickDashDisabilityScore(@PathVariable String patientUuid) {
 		Double dashScore = null;
-		if (patientId != null) {
-			Patient patient = patientService.getPatient(patientId);
+		if (StringUtils.isNotEmpty(patientUuid)) {
+			Patient patient = patientService.getPatientByUuid(patientUuid);
 			EncounterType questionnaireEncounterType = encounterService.getEncounterTypeByUuid(
 					OutcomesConstants.QUESTIONNAIRE_ENCOUNTER_TYPE_UUID);
 			Optional<Encounter> encounter = encounterService.getEncountersByPatient(patient).stream()
@@ -96,6 +115,41 @@ public class OutcomesRestController extends MainResourceController {
 		return new ResponseEntity<>(dashScore, HttpStatus.OK);
 	}
 	
+	@RequestMapping(value = "/sms", method = RequestMethod.POST, consumes="application/json")
+	public ResponseEntity<String> sendSmsMessage(@RequestBody MessageRequest messageRequest) {
+		Patient patient = patientService.getPatientByUuid(messageRequest.getPatientUuid());
+		if (patient != null) {
+			Person person = patient.getPerson();
+			PersonAttributeType guidPersonAttributeType = personService
+					.getPersonAttributeTypeByUuid(OutcomesConstants.GUID_PERSON_ATTRIBUTE_TYPE);
+			PersonAttribute guidPersonAttribute = new PersonAttribute();
+			guidPersonAttribute.setAttributeType(guidPersonAttributeType);
+			guidPersonAttribute.setPerson(person);
+			guidPersonAttribute.setValue(messageRequest.getGuid());
+			guidPersonAttribute.setCreator(person.getCreator());
+			person.addAttribute(guidPersonAttribute);
+			personService.savePerson(person);
+		}
+		
+		SmsApi smsApi = new SmsApi(clickSendConfig);
+		SmsMessage smsMessage = new SmsMessage();
+		smsMessage.body(messageRequest.getBody());
+		smsMessage.to(messageRequest.getTo());
+		smsMessage.source(messageRequest.getSource());
+
+		List<SmsMessage> smsMessageList = new ArrayList<>();
+		smsMessageList.add(smsMessage);
+		SmsMessageCollection smsMessages = new SmsMessageCollection();
+		smsMessages.messages(smsMessageList);
+		
+		try {
+			return new ResponseEntity<>(smsApi.smsSendPost(smsMessages), HttpStatus.OK);
+		} catch (ApiException exception) {
+			log.info(exception.getMessage());
+			return new ResponseEntity<>("Failed " + exception.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
+	
 	@RequestMapping(value = "/questionnaire", method = RequestMethod.POST, consumes="application/json")
 	public ResponseEntity<QuestionaireResource> saveQuestionnaire(@Valid @RequestBody QuestionaireResource questionaireResource, final BindingResult bindingResult)
 			throws JsonProcessingException {
@@ -104,7 +158,11 @@ public class OutcomesRestController extends MainResourceController {
 			throw new APIException("An error occurred! Please contact System Administrator");
 		}
 
-		Patient patient = patientService.getPatient(questionaireResource.getPatientId());
+		PersonAttributeType guidPersonAttributeType = personService
+				.getPersonAttributeTypeByUuid(OutcomesConstants.GUID_PERSON_ATTRIBUTE_TYPE);
+
+		Patient patient = outcomesService.getPatientHavingPersonAttributes(guidPersonAttributeType,
+				Collections.singletonList(questionaireResource.getGuid()));
 
 		EncounterType questionnaireEncounterType =
 				encounterService.getEncounterTypeByUuid(OutcomesConstants.QUESTIONNAIRE_ENCOUNTER_TYPE_UUID);
