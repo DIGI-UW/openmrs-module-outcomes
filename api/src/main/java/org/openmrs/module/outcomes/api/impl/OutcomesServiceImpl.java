@@ -54,7 +54,7 @@ public class OutcomesServiceImpl extends BaseOpenmrsService implements OutcomesS
 	}
 	
 	@Override
-	public Patient getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values)
+	public Integer getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values)
 	        throws APIException {
 		return dao.getPatientHavingPersonAttributes(attributeType, values);
 	}

@@ -49,7 +49,7 @@ public class OutcomesDao {
 		getSession().delete(questionaire);
 	}
 	
-	public Patient getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values) {
+	public Integer getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values) {
 		StringBuilder sqlQuery = new StringBuilder();
 		sqlQuery.append("SELECT patient.patient_id ");
 		sqlQuery.append("FROM person_attribute ");
@@ -81,6 +81,6 @@ public class OutcomesDao {
 				query.setParameterList("values", values);
 			}
 		}
-		return (Patient) query.uniqueResult();
+		return (Integer) query.uniqueResult();
 	}
 }

@@ -31,6 +31,7 @@ import org.openmrs.module.outcomes.Questionaire;
 import org.openmrs.module.outcomes.api.OutcomesService;
 import org.openmrs.module.outcomes.api.resource.QuestionaireResource;
 import org.openmrs.module.outcomes.request.MessageRequest;
+import org.openmrs.module.outcomes.response.QuestionaireResponse;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
 import org.openmrs.obs.ComplexData;
@@ -151,94 +152,100 @@ public class OutcomesRestController extends MainResourceController {
 	}
 	
 	@RequestMapping(value = "/questionnaire", method = RequestMethod.POST, consumes="application/json")
-	public ResponseEntity<QuestionaireResource> saveQuestionnaire(@Valid @RequestBody QuestionaireResource questionaireResource, final BindingResult bindingResult)
+	public ResponseEntity<QuestionaireResponse> saveQuestionnaire(@Valid @RequestBody QuestionaireResource questionaireResource, final BindingResult bindingResult)
 			throws JsonProcessingException {
 
 		if (bindingResult.hasErrors()) {
 			throw new APIException("An error occurred! Please contact System Administrator");
 		}
 
+		QuestionaireResponse questionaireResponse = new QuestionaireResponse();
+
 		PersonAttributeType guidPersonAttributeType = personService
 				.getPersonAttributeTypeByUuid(OutcomesConstants.GUID_PERSON_ATTRIBUTE_TYPE);
 
-		Patient patient = outcomesService.getPatientHavingPersonAttributes(guidPersonAttributeType,
+		Integer patientIdentifier = outcomesService.getPatientHavingPersonAttributes(guidPersonAttributeType,
 				Collections.singletonList(questionaireResource.getGuid()));
 
-		EncounterType questionnaireEncounterType =
-				encounterService.getEncounterTypeByUuid(OutcomesConstants.QUESTIONNAIRE_ENCOUNTER_TYPE_UUID);
+		if (patientIdentifier != null) {
+			Patient patient = patientService.getPatient(patientIdentifier);
+			EncounterType questionnaireEncounterType =
+					encounterService.getEncounterTypeByUuid(OutcomesConstants.QUESTIONNAIRE_ENCOUNTER_TYPE_UUID);
+			VisitType visitType = visitService
+					.getVisitTypeByUuid(OutcomesConstants.VISIT_TYPE_UUID);
+			if (patient != null) {
+				Questionaire questionaire = new Questionaire();
+				questionaire.setResource(mapper.writeValueAsString(questionaireResource));
+				outcomesService.saveQuestionnaire(questionaire);
+				log.info("Saved questionnaire ".concat(mapper.writeValueAsString(questionaireResource)));
 
-		VisitType visitType = visitService
-				.getVisitTypeByUuid(OutcomesConstants.VISIT_TYPE_UUID);
-		
-		if (patient != null) {
-			Questionaire questionaire = new Questionaire();
-			questionaire.setResource(mapper.writeValueAsString(questionaireResource));
-			outcomesService.saveQuestionnaire(questionaire);
-			log.info("Saved questionnaire ".concat(mapper.writeValueAsString(questionaireResource)));
-			
-			Visit visit = createVisit(patient, visitType, new Date());
-			if (questionnaireEncounterType != null) {
-				Encounter questionnaireEncounter = createEncounter(patient, questionnaireEncounterType, visit);
-				if (StringUtils.isNotEmpty(questionaireResource.getOpenTightJar())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.OPEN_TIGHT_JAR_CONCEPT_UUID), getConcept(questionaireResource.getOpenTightJar()));
-				}
+				Visit visit = createVisit(patient, visitType, new Date());
+				if (questionnaireEncounterType != null) {
+					Encounter questionnaireEncounter = createEncounter(patient, questionnaireEncounterType, visit);
+					if (StringUtils.isNotEmpty(questionaireResource.getOpenTightJar())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.OPEN_TIGHT_JAR_CONCEPT_UUID), getConcept(questionaireResource.getOpenTightJar()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getHeavyHouseholdChores())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.HEAVY_HOUSEHOLD_CHORES_CONCEPT_UUID), getConcept(questionaireResource.getHeavyHouseholdChores()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getHeavyHouseholdChores())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.HEAVY_HOUSEHOLD_CHORES_CONCEPT_UUID), getConcept(questionaireResource.getHeavyHouseholdChores()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getCarryShoppingBag())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.CARRY_SHOPPING_BAG_CONCEPT_UUID), getConcept(questionaireResource.getCarryShoppingBag()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getCarryShoppingBag())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.CARRY_SHOPPING_BAG_CONCEPT_UUID), getConcept(questionaireResource.getCarryShoppingBag()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getWashYourBack())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.WASH_YOUR_BACK_CONCEPT_UUID), getConcept(questionaireResource.getWashYourBack()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getWashYourBack())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.WASH_YOUR_BACK_CONCEPT_UUID), getConcept(questionaireResource.getWashYourBack()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getUseKnifeToCutFood())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.USE_KNIFE_CONCEPT_UUID), getConcept(questionaireResource.getUseKnifeToCutFood()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getUseKnifeToCutFood())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.USE_KNIFE_CONCEPT_UUID), getConcept(questionaireResource.getUseKnifeToCutFood()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getImpactfulRecreationalActivities())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.RECREATIONAL_ACTIVITIES_CONCEPT_UUID), getConcept(questionaireResource.getImpactfulRecreationalActivities()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getImpactfulRecreationalActivities())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.RECREATIONAL_ACTIVITIES_CONCEPT_UUID), getConcept(questionaireResource.getImpactfulRecreationalActivities()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getInterferenceWithSocialActivities())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.SOCIAL_ACTIVITIES_CONCEPT_UUID), getConcept(questionaireResource.getInterferenceWithSocialActivities()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getInterferenceWithSocialActivities())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.SOCIAL_ACTIVITIES_CONCEPT_UUID), getConcept(questionaireResource.getInterferenceWithSocialActivities()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getLimitationsInWorkActivities())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.ACTIVITY_LIMITATIONS_CONCEPT_UUID), getConcept(questionaireResource.getLimitationsInWorkActivities()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getLimitationsInWorkActivities())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.ACTIVITY_LIMITATIONS_CONCEPT_UUID), getConcept(questionaireResource.getLimitationsInWorkActivities()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getArmShoulderHandPain())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.LIMB_PAIN_CONCEPT_UUID), getConcept(questionaireResource.getArmShoulderHandPain()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getArmShoulderHandPain())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.LIMB_PAIN_CONCEPT_UUID), getConcept(questionaireResource.getArmShoulderHandPain()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getTinglingPinsAndNeedles())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.TINGLING_NEEDLES_CONCEPT_UUID), getConcept(questionaireResource.getTinglingPinsAndNeedles()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getTinglingPinsAndNeedles())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.TINGLING_NEEDLES_CONCEPT_UUID), getConcept(questionaireResource.getTinglingPinsAndNeedles()));
+					}
 
-				if (StringUtils.isNotEmpty(questionaireResource.getDifficultySleeping())) {
-					createObs(questionnaireEncounter, getConcept(OutcomesConstants.DIFFICULTY_SLEEPING_CONCEPT_UUID), getConcept(questionaireResource.getDifficultySleeping()));
-				}
+					if (StringUtils.isNotEmpty(questionaireResource.getDifficultySleeping())) {
+						createObs(questionnaireEncounter, getConcept(OutcomesConstants.DIFFICULTY_SLEEPING_CONCEPT_UUID), getConcept(questionaireResource.getDifficultySleeping()));
+					}
 
-				if (!Objects.isNull(questionaireResource.getPhoto())) {
-					String json = mapper.writeValueAsString(questionaireResource);
-					ComplexData complexImageData = null;
-					try {
-						JsonNode nodes = mapper.readTree(json).get("photo");
-						for (JsonNode node : nodes) {
-							complexImageData = new ComplexData(node.get("name").asText(), node.get("content"));
+					if (!Objects.isNull(questionaireResource.getPhoto())) {
+						String json = mapper.writeValueAsString(questionaireResource);
+						ComplexData complexImageData = null;
+						try {
+							JsonNode nodes = mapper.readTree(json).get("photo");
+							for (JsonNode node : nodes) {
+								complexImageData = new ComplexData(node.get("name").asText(), node.get("content"));
+							}
 						}
+						catch (JsonProcessingException e) {
+							throw new RuntimeException(e);
+						}
+						createComplexObs(questionnaireEncounter, getConcept(OutcomesConstants.INJURY_PHOTO_CONCEPT_UUID), complexImageData);
 					}
-					catch (JsonProcessingException e) {
-						throw new RuntimeException(e);
-					}
-					createComplexObs(questionnaireEncounter, getConcept(OutcomesConstants.INJURY_PHOTO_CONCEPT_UUID), complexImageData);
 				}
 			}
+			questionaireResponse.setMessage("Successfully saved Questionnaire for patient " + questionaireResource.getGuid());
+			return new ResponseEntity<>(questionaireResponse, HttpStatus.CREATED);
 		}
-		return new ResponseEntity<>(questionaireResource, HttpStatus.CREATED);
+		questionaireResponse.setMessage("Failed to save Questionnaire!");
+		return new ResponseEntity<>(questionaireResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
 }

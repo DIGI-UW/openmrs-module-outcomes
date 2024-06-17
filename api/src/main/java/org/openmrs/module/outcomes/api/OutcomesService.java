@@ -9,7 +9,6 @@
  */
 package org.openmrs.module.outcomes.api;
 
-import org.openmrs.Patient;
 import org.openmrs.PersonAttributeType;
 import org.openmrs.api.APIException;
 import org.openmrs.api.OpenmrsService;
@@ -55,5 +54,5 @@ public interface OutcomesService extends OpenmrsService {
 	 * 
 	 * @return patient matching the query
 	 */
-	Patient getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values) throws APIException;
+	Integer getPatientHavingPersonAttributes(PersonAttributeType attributeType, List<String> values) throws APIException;
 }
