@@ -37,4 +37,44 @@ public class OutcomesConstants {
 	public static final String INJURY_PHOTO_CONCEPT_UUID = "7c06583b-a425-44eb-b4f5-ac63332c00a2";
 	
 	public static final String GUID_PERSON_ATTRIBUTE_TYPE = "5e6f7ceb-ca89-403b-bd03-3fb6e81788d0";
+	
+	public static final String NO_DIFFICULTY_RESPONSE_UUID = "08885dbb-8f8b-47de-b9d9-814a686bf0ae";
+	
+	public static final String MILD_DIFFICULTY_RESPONSE_UUID = "daefb4bb-647f-4768-8d0d-76b515f727b7";
+	
+	public static final String MODERATE_DIFFICULTY_RESPONSE_UUID = "d3893aa5-cd39-4af8-97ac-b2ee74f4daf8";
+	
+	public static final String SEVERE_DIFFICULTY_RESPONSE_UUID = "16108c8c-5572-416f-809d-0f8f412b2125";
+	
+	public static final String UNABLE_RESPONSE_UUID = "5a893ee6-500c-4128-bab7-17737849729b";
+	
+	public static final String NOT_AT_ALL_RESPONSE_UUID = "f1e56bd1-83f8-419e-9d8c-9aaadf6f9790";
+	
+	public static final String SLIGHTLY_RESPONSE_UUID = "88a1e0e3-972e-4293-98c7-cd7ae5937cb1";
+	
+	public static final String MODERATELY_RESPONSE_UUID = "20d03ba9-454a-45c2-8244-88ae1e7de2d6";
+	
+	public static final String QUITE_A_BIT_RESPONSE_UUID = "56a3ab79-30d2-4855-ba4a-3758b8ae309d";
+	
+	public static final String EXTREMELY_RESPONSE_UUID = "606947a4-ad44-44b9-bb0f-34b6530c2c43";
+	
+	public static final String NOT_LIMITED_AT_ALL_RESPONSE_UUID = "45a81810-25b4-441d-a846-0b0c0acdb377";
+	
+	public static final String SLIGHTLY_LIMITED_RESPONSE_UUID = "a9af73a8-564f-45c1-a85d-e81c2a616ccd";
+	
+	public static final String MODERATELY_LIMITED_RESPONSE_UUID = "5303e964-6ada-4415-baf2-945d34f5fccf";
+	
+	public static final String VERY_LIMITED_RESPONSE_UUID = "adf9af6e-a1c3-462d-bd58-702a2b7bdc9b";
+	
+	public static final String NONE_RESPONSE_UUID = "75f3c572-74dc-4c71-aa9a-3278dbcd2fb6";
+	
+	public static final String MILD_RESPONSE_UUID = "8db1770d-fa3d-419f-a794-f6c3e3d04d6f";
+	
+	public static final String MODERATE_RESPONSE_UUID = "54798d14-ae3b-4666-8667-a9be973f9996";
+	
+	public static final String SEVERE_RESPONSE_UUID = "258d897f-da46-4d35-ae1f-f6517117bd01";
+	
+	public static final String EXTREME_RESPONSE_UUID = "90192048-9a12-45fa-94c8-faea53e7378a";
+	
+	public static final String SO_MUCH_DIFFICULTY_RESPONSE_UUID = "50e850eb-1c85-4779-9598-aec6a91e4895";
 }

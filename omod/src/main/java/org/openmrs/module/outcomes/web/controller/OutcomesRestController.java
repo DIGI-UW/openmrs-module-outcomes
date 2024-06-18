@@ -54,7 +54,28 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static org.openmrs.module.outcomes.OutcomesConstants.EXTREMELY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.EXTREME_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.MILD_DIFFICULTY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.MILD_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.MODERATELY_LIMITED_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.MODERATELY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.MODERATE_DIFFICULTY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.MODERATE_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.NONE_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.NOT_AT_ALL_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.NOT_LIMITED_AT_ALL_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.NO_DIFFICULTY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.QUITE_A_BIT_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.SEVERE_DIFFICULTY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.SEVERE_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.SLIGHTLY_LIMITED_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.SLIGHTLY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.SO_MUCH_DIFFICULTY_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.UNABLE_RESPONSE_UUID;
+import static org.openmrs.module.outcomes.OutcomesConstants.VERY_LIMITED_RESPONSE_UUID;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createComplexObs;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createEncounter;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createObs;
@@ -95,7 +116,7 @@ public class OutcomesRestController extends MainResourceController {
 	
 	@RequestMapping(value = "/score/{patientUuid}", method = RequestMethod.GET)
 	public ResponseEntity<Double> getQuickDashDisabilityScore(@PathVariable String patientUuid) {
-		Double dashScore = null;
+		double dashScore = 0.0;
 		if (StringUtils.isNotEmpty(patientUuid)) {
 			Patient patient = patientService.getPatientByUuid(patientUuid);
 			EncounterType questionnaireEncounterType = encounterService.getEncounterTypeByUuid(
@@ -105,15 +126,90 @@ public class OutcomesRestController extends MainResourceController {
 							.equals(questionnaireEncounterType))
 					.max(Comparator.comparing(Encounter::getEncounterDatetime));
 			if (encounter.isPresent()) {
-				Set<Obs> obsSet = encounter.get().getAllObs(false);
+				Set<Obs> obsSet = encounter.get()
+						.getAllObs(false)
+						.stream()
+						.filter(obs -> obs.getValueCoded() != null)
+						.collect(Collectors.toSet());
 				int numberOfResponses = obsSet.size();
-				if (numberOfResponses >= 3) {
-					int score = ((numberOfResponses - 1) / numberOfResponses) * 25;
-					dashScore = (double) score;
+				double sumOfResponses = 0.0;
+				for(Obs obs : obsSet) {
+					String conceptUuid = obs.getValueCoded().getUuid();
+					if (conceptUuid.equals(NO_DIFFICULTY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, NO_DIFFICULTY_RESPONSE_UUID, 1, sumOfResponses);
+					}					
+					if (conceptUuid.equals(MILD_DIFFICULTY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, MILD_DIFFICULTY_RESPONSE_UUID, 2, sumOfResponses);
+					}
+					if (conceptUuid.equals(MODERATE_DIFFICULTY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, MODERATE_DIFFICULTY_RESPONSE_UUID, 3, sumOfResponses);
+					}
+					if (conceptUuid.equals(SEVERE_DIFFICULTY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, SEVERE_DIFFICULTY_RESPONSE_UUID, 4, sumOfResponses);
+					}
+					if (conceptUuid.equals(UNABLE_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, UNABLE_RESPONSE_UUID, 5, sumOfResponses);
+					}
+					if (conceptUuid.equals(NOT_AT_ALL_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, NOT_AT_ALL_RESPONSE_UUID, 1, sumOfResponses);
+					}
+					if (conceptUuid.equals(SLIGHTLY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, SLIGHTLY_RESPONSE_UUID, 2, sumOfResponses);
+					}					
+					if (conceptUuid.equals(MODERATELY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, MODERATELY_RESPONSE_UUID, 3, sumOfResponses);
+					}
+					if (conceptUuid.equals(QUITE_A_BIT_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, QUITE_A_BIT_RESPONSE_UUID, 4, sumOfResponses);
+					}
+					if (conceptUuid.equals(EXTREMELY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, EXTREMELY_RESPONSE_UUID, 5, sumOfResponses);
+					}
+					if (conceptUuid.equals(NOT_LIMITED_AT_ALL_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, NOT_LIMITED_AT_ALL_RESPONSE_UUID, 1, sumOfResponses);
+					}
+					if (conceptUuid.equals(SLIGHTLY_LIMITED_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, SLIGHTLY_LIMITED_RESPONSE_UUID, 2, sumOfResponses);
+					}
+					if (conceptUuid.equals(MODERATELY_LIMITED_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, MODERATELY_LIMITED_RESPONSE_UUID, 3, sumOfResponses);
+					}
+					if (conceptUuid.equals(VERY_LIMITED_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, VERY_LIMITED_RESPONSE_UUID, 4, sumOfResponses);
+					}
+					if (conceptUuid.equals(UNABLE_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, UNABLE_RESPONSE_UUID, 5, sumOfResponses);
+					}
+					if (conceptUuid.equals(NONE_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, NONE_RESPONSE_UUID, 1, sumOfResponses);
+					}
+					if (conceptUuid.equals(MILD_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, MILD_RESPONSE_UUID, 2, sumOfResponses);
+					}
+					if (conceptUuid.equals(MODERATE_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, MODERATE_RESPONSE_UUID, 3, sumOfResponses);
+					}
+					if (conceptUuid.equals(SEVERE_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, SEVERE_RESPONSE_UUID, 4, sumOfResponses);
+					}
+					if (conceptUuid.equals(EXTREME_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, EXTREME_RESPONSE_UUID, 5, sumOfResponses);
+					}
+					if (conceptUuid.equals(SO_MUCH_DIFFICULTY_RESPONSE_UUID)) {
+						sumOfResponses = getSumOfResponses(conceptUuid, SO_MUCH_DIFFICULTY_RESPONSE_UUID, 5, sumOfResponses);
+					}
 				}
+				dashScore = ((sumOfResponses - 1) / numberOfResponses) * 25;
 			}
 		}
 		return new ResponseEntity<>(dashScore, HttpStatus.OK);
+	}
+	
+	private static double getSumOfResponses(String conceptUuid, String responseUuid, int counter, double sumOfResponses) {
+		if (conceptUuid.equals(responseUuid)) {
+			sumOfResponses += counter;
+		}
+		return sumOfResponses;
 	}
 	
 	@RequestMapping(value = "/sms", method = RequestMethod.POST, consumes="application/json")
