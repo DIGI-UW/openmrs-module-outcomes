@@ -93,7 +93,7 @@ public class OutcomesRestController extends MainResourceController {
 		return new ResponseEntity<>(questionaire != null ? questionaire.getResource() : null, HttpStatus.OK);
 	}
 	
-	@RequestMapping(value = "/questionnaire/{patientUuid}", method = RequestMethod.GET)
+	@RequestMapping(value = "/score/{patientUuid}", method = RequestMethod.GET)
 	public ResponseEntity<Double> getQuickDashDisabilityScore(@PathVariable String patientUuid) {
 		Double dashScore = null;
 		if (StringUtils.isNotEmpty(patientUuid)) {
