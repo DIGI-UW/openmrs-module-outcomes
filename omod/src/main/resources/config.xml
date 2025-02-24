@@ -23,6 +23,7 @@
 
 	<require_modules>
 		<require_module version="${webservices.restModuleVersion}">org.openmrs.module.webservices.rest</require_module>
+		<require_module version="3.2.0">org.openmrs.module.attachments</require_module>
 	</require_modules>
 
 	<aware_of_modules>
@@ -45,4 +46,3 @@
 	</messages>
 	<!-- /Internationalization -->
 </module>
-
