@@ -1,5 +1,14 @@
 package org.openmrs.module.outcomes.utils;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.openmrs.Concept;
@@ -14,14 +23,12 @@ import org.openmrs.Provider;
 import org.openmrs.User;
 import org.openmrs.Visit;
 import org.openmrs.VisitType;
+import org.openmrs.api.APIException;
 import org.openmrs.api.LocationService;
 import org.openmrs.api.context.Context;
+import org.openmrs.module.attachments.ComplexObsSaver;
 import org.openmrs.module.outcomes.OutcomesConstants;
-import org.openmrs.obs.ComplexData;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import org.springframework.web.multipart.MultipartFile;
 
 public class OutcomesUtils {
 	
@@ -109,7 +116,7 @@ public class OutcomesUtils {
 		return obs;
 	}
 	
-	public static Obs createComplexObs(Encounter encounter, Concept question, ComplexData complexData) {
+	public static Obs createComplexObs(Encounter encounter, Concept question, String base64Data, String imageName) {
 		Obs obs = new Obs();
 		obs.setPerson(encounter.getPatient());
 		obs.setLocation(encounter.getLocation());
@@ -117,10 +124,29 @@ public class OutcomesUtils {
 		obs.setDateCreated(encounter.getDateCreated());
 		obs.setEncounter(encounter);
 		obs.setObsDatetime(encounter.getEncounterDatetime());
-		if (question != null && complexData != null) {
+		if (question != null && base64Data != null) {
 			obs.setConcept(question);
-			obs.setComplexData(complexData);
-			Context.getObsService().saveObs(obs, "Saved obs!");
+			
+			MultipartFile file = null;
+			try {
+				file = new Base64MultipartFile(base64Data, imageName, imageName);
+			}
+			catch (IOException ex) {}
+			
+			try {
+				
+				Context.getRegisteredComponents(ComplexObsSaver.class)
+				        .get(0)
+				        .saveImageAttachment(encounter.getVisit(), encounter.getPatient(), encounter, imageName, file,
+				            imageName);
+			}
+			catch (APIException e) {
+				e.printStackTrace();
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+			
 		}
 		return obs;
 	}
@@ -131,4 +157,74 @@ public class OutcomesUtils {
 		visit.setLocation(location);
 		return Context.getVisitService().saveVisit(visit);
 	}
+	
+	static final class Base64MultipartFile implements MultipartFile {
+		
+		private final String fileName;
+		
+		private final String originalFileName;
+		
+		private final String contentType;
+		
+		private final long size;
+		
+		private final InputStream in;
+		
+		private final byte[] bytes;
+		
+		public Base64MultipartFile(String base64Image, String fileName, String originalFileName) throws IOException {
+			String[] parts = base64Image.split(",", 2);
+			String contentType = parts[0].split(":")[1].split(";")[0].trim();
+			String contents = parts[1].trim();
+			byte[] decodedImage = Base64.decodeBase64(contents.getBytes());
+			
+			this.fileName = fileName;
+			this.originalFileName = originalFileName;
+			this.in = new ByteArrayInputStream(decodedImage);
+			this.contentType = contentType;
+			this.bytes = decodedImage;
+			this.size = decodedImage.length;
+		}
+		
+		@Override
+		public String getName() {
+			return this.fileName;
+		}
+		
+		@Override
+		public String getOriginalFilename() {
+			return this.originalFileName;
+		}
+		
+		@Override
+		public String getContentType() {
+			return this.contentType;
+		}
+		
+		@Override
+		public boolean isEmpty() {
+			return false;
+		}
+		
+		@Override
+		public long getSize() {
+			return this.size;
+		}
+		
+		@Override
+		public byte[] getBytes() {
+			return this.bytes;
+		}
+		
+		@Override
+		public InputStream getInputStream() {
+			return this.in;
+		}
+		
+		@Override
+		public void transferTo(File dest) throws IllegalStateException {
+			throw new APIException("Operation transferTo is not supported for Base64MultipartFile");
+		}
+	}
+	
 }

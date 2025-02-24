@@ -34,7 +34,6 @@ import org.openmrs.module.outcomes.request.MessageRequest;
 import org.openmrs.module.outcomes.response.QuestionaireResponse;
 import org.openmrs.module.webservices.rest.web.RestConstants;
 import org.openmrs.module.webservices.rest.web.v1_0.controller.MainResourceController;
-import org.openmrs.obs.ComplexData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,11 +75,11 @@ import static org.openmrs.module.outcomes.OutcomesConstants.SLIGHTLY_RESPONSE_UU
 import static org.openmrs.module.outcomes.OutcomesConstants.SO_MUCH_DIFFICULTY_RESPONSE_UUID;
 import static org.openmrs.module.outcomes.OutcomesConstants.UNABLE_RESPONSE_UUID;
 import static org.openmrs.module.outcomes.OutcomesConstants.VERY_LIMITED_RESPONSE_UUID;
-import static org.openmrs.module.outcomes.utils.OutcomesUtils.createComplexObs;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createEncounter;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createObs;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.createVisit;
 import static org.openmrs.module.outcomes.utils.OutcomesUtils.getConcept;
+import static org.openmrs.module.outcomes.utils.OutcomesUtils.createComplexObs;
 
 @Controller(value = "outcomesRestController")
 @RequestMapping(value = "/rest/" + RestConstants.VERSION_1 + "/" + OutcomesConstants.OUTCOMES_MODULE_ID)
@@ -324,17 +323,19 @@ public class OutcomesRestController extends MainResourceController {
 
 					if (!Objects.isNull(questionaireResource.getPhoto())) {
 						String json = mapper.writeValueAsString(questionaireResource);
-						ComplexData complexImageData = null;
+						String imageName = null;
+						String base64Image = null;
 						try {
 							JsonNode nodes = mapper.readTree(json).get("photo");
 							for (JsonNode node : nodes) {
-								complexImageData = new ComplexData(node.get("name").asText(), node.get("content"));
+								base64Image = node.get("content").asText();
+								imageName = node.get("name").asText();
 							}
 						}
 						catch (JsonProcessingException e) {
 							throw new RuntimeException(e);
 						}
-						createComplexObs(questionnaireEncounter, getConcept(OutcomesConstants.INJURY_PHOTO_CONCEPT_UUID), complexImageData);
+						createComplexObs(questionnaireEncounter, getConcept(OutcomesConstants.INJURY_PHOTO_CONCEPT_UUID), base64Image, imageName);
 					}
 				}
 			}
