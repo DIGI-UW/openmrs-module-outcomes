@@ -345,4 +345,113 @@ public class OutcomesRestController extends MainResourceController {
 		questionaireResponse.setMessage("Failed to save Questionnaire!");
 		return new ResponseEntity<>(questionaireResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
+	
+	@RequestMapping(value = "/footQuestionnaire", method = RequestMethod.POST, consumes="application/json")
+	public ResponseEntity<QuestionaireResponse> saveFootQuestionnaire(@Valid @RequestBody QuestionaireResource questionaireResource, final BindingResult bindingResult)
+			throws JsonProcessingException {
+
+		if (bindingResult.hasErrors()) {
+			throw new APIException("An error occurred! Please contact System Administrator");
+		}
+
+		QuestionaireResponse questionaireResponse = new QuestionaireResponse();
+
+		PersonAttributeType guidPersonAttributeType = personService
+				.getPersonAttributeTypeByUuid(OutcomesConstants.GUID_PERSON_ATTRIBUTE_TYPE);
+
+		Integer patientIdentifier = outcomesService.getPatientHavingPersonAttributes(guidPersonAttributeType,
+				Collections.singletonList(questionaireResource.getGuid()));
+
+		if (patientIdentifier != null) {
+			Patient patient = patientService.getPatient(patientIdentifier);
+			EncounterType questionnaireEncounterType =
+					encounterService.getEncounterTypeByUuid(OutcomesConstants.FOOT_QUESTIONNAIRE_ENCOUNTER_TYPE_UUID);
+			VisitType visitType = visitService
+					.getVisitTypeByUuid(OutcomesConstants.VISIT_TYPE_UUID);
+			if (patient != null) {
+				Questionaire questionaire = new Questionaire();
+				questionaire.setResource(mapper.writeValueAsString(questionaireResource));
+				outcomesService.saveQuestionnaire(questionaire);
+				log.info("Saved questionnaire ".concat(mapper.writeValueAsString(questionaireResource)));
+
+				Visit visit = createVisit(patient, visitType, new Date());
+				if (questionnaireEncounterType != null) {
+					Encounter questionnaireEncounter = createEncounter(patient, questionnaireEncounterType, visit);
+
+						if (StringUtils.isNotEmpty(questionaireResource.getVasPainScale())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.VAS_PAIN_SCALE_CONCEPT_UUID), getConcept(questionaireResource.getVasPainScale()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getGeneralHealth())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.GENERAL_HEALTH_CONCEPT_UUID), getConcept(questionaireResource.getGeneralHealth()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getModerateEfforts())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.MODERATE_EFFORTS_CONCEPT_UUID), getConcept(questionaireResource.getModerateEfforts()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getClimbFloors())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.CLIMB_FLOORS_CONCEPT_UUID), getConcept(questionaireResource.getClimbFloors()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getAccomplishedLess())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.ACCOMPLISHED_LESS_CONCEPT_UUID), getConcept(questionaireResource.getAccomplishedLess()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getStoppedDoingWorkDaily())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.STOPPED_DOING_WORK_DAILY_CONCEPT_UUID), getConcept(questionaireResource.getStoppedDoingWorkDaily()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getLessAccomplishedThanYouWouldLikeEmotion())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.LESS_ACCOMPLISHED_THAN_YOU_WOULD_LIKE_EMOTION_CONCEPT_UUID), getConcept(questionaireResource.getLessAccomplishedThanYouWouldLikeEmotion()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getUnableToDoWorkOrOtherActivitiesCarefullyAsUsual())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.UNABLE_TO_DO_WORK_OR_OTHER_ACTIVITIES_CAREFULLY_AS_USUAL_CONCEPT_UUID), getConcept(questionaireResource.getUnableToDoWorkOrOtherActivitiesCarefullyAsUsual()));
+						}
+					
+						if (StringUtils.isNotEmpty(questionaireResource.getAmountOfPainUnableToDoWork())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.AMOUNT_OF_PAIN_UNABLE_TO_DO_WORK_CONCEPT_UUID), getConcept(questionaireResource.getAmountOfPainUnableToDoWork()));
+						}
+						
+						if (StringUtils.isNotEmpty(questionaireResource.getHaveYouFeltCalmAndPeaceful())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.HAVE_YOU_FELT_CALM_AND_PEACEFUL_CONCEPT_UUID), getConcept(questionaireResource.getHaveYouFeltCalmAndPeaceful()));
+						}
+						
+						if (StringUtils.isNotEmpty(questionaireResource.getHadALotOfEnergy())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.HAD_A_LOT_OF_ENERGY_CONCEPT_UUID), getConcept(questionaireResource.getHadALotOfEnergy()));
+						}
+						
+						if (StringUtils.isNotEmpty(questionaireResource.getFeltDiscouragedAndSad())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.FELT_DISCOURAGED_AND_SAD_CONCEPT_UUID), getConcept(questionaireResource.getFeltDiscouragedAndSad()));
+						}
+						
+						if (StringUtils.isNotEmpty(questionaireResource.getInterferenceWithSocialActivities())) {
+							createObs(questionnaireEncounter, getConcept(OutcomesConstants.INTERFERENCE_WITH_SOCIAL_ACTIVITIES_CONCEPT_UUID), getConcept(questionaireResource.getInterferenceWithSocialActivities()));
+						}
+
+					if (!Objects.isNull(questionaireResource.getPhoto())) {
+						String json = mapper.writeValueAsString(questionaireResource);
+						String imageName = null;
+						String base64Image = null;
+						try {
+							JsonNode nodes = mapper.readTree(json).get("photo");
+							for (JsonNode node : nodes) {
+								base64Image = node.get("content").asText();
+								imageName = node.get("name").asText();
+							}
+						}
+						catch (JsonProcessingException e) {
+							throw new RuntimeException(e);
+						}
+						createComplexObs(questionnaireEncounter, getConcept(OutcomesConstants.INJURY_PHOTO_CONCEPT_UUID), base64Image, imageName);
+					}
+				}
+			}
+			questionaireResponse.setMessage("Successfully saved Questionnaire for patient " + questionaireResource.getGuid());
+			return new ResponseEntity<>(questionaireResponse, HttpStatus.CREATED);
+		}
+		questionaireResponse.setMessage("Failed to save Questionnaire!");
+		return new ResponseEntity<>(questionaireResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+	}
 }

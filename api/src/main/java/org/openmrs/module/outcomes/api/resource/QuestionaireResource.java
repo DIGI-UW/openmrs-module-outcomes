@@ -42,4 +42,29 @@ public class QuestionaireResource implements Serializable {
 	public String difficultySleeping;
 	
 	public Photo[] photo;
+	
+	public String vasPainScale;
+	
+	public String generalHealth;
+	
+	public String moderateEfforts;
+	
+	public String climbFloors;
+	
+	public String accomplishedLess;
+	
+	public String stoppedDoingWorkDaily;
+	
+	public String lessAccomplishedThanYouWouldLikeEmotion;
+	
+	public String unableToDoWorkOrOtherActivitiesCarefullyAsUsual;
+	
+	public String amountOfPainUnableToDoWork;
+	
+	public String haveYouFeltCalmAndPeaceful;
+	
+	public String hadALotOfEnergy;
+	
+	public String feltDiscouragedAndSad;
+	
 }

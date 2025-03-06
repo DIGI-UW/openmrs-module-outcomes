@@ -77,4 +77,33 @@ public class OutcomesConstants {
 	public static final String EXTREME_RESPONSE_UUID = "90192048-9a12-45fa-94c8-faea53e7378a";
 	
 	public static final String SO_MUCH_DIFFICULTY_RESPONSE_UUID = "50e850eb-1c85-4779-9598-aec6a91e4895";
+	
+	public static final String FOOT_QUESTIONNAIRE_ENCOUNTER_TYPE_UUID = "a05e662d-cb0b-4eba-9696-d1590f909355";
+	
+	public static final String VAS_PAIN_SCALE_CONCEPT_UUID = "51a413e9-0790-0d4d-5094-a591f59f6c2f";
+	
+	public static final String GENERAL_HEALTH_CONCEPT_UUID = "c3fba212-710f-4c12-8886-472cea348a04";
+	
+	public static final String MODERATE_EFFORTS_CONCEPT_UUID = "ff20066b-3060-9bc8-942c-aead0bc944fd";
+	
+	public static final String CLIMB_FLOORS_CONCEPT_UUID = "ac2dde8c-7bda-62b2-26ff-f2cb07992e7c";
+	
+	public static final String ACCOMPLISHED_LESS_CONCEPT_UUID = "5759bcc7-27a5-4606-8b81-4e71a0b0e428";
+	
+	public static final String STOPPED_DOING_WORK_DAILY_CONCEPT_UUID = "26e490f3-a262-a67b-50fd-45bcf2de8c34";
+	
+	public static final String LESS_ACCOMPLISHED_THAN_YOU_WOULD_LIKE_EMOTION_CONCEPT_UUID = "105bc8b1-e762-45c5-b681-2c5415c1ec8a";
+	
+	public static final String UNABLE_TO_DO_WORK_OR_OTHER_ACTIVITIES_CAREFULLY_AS_USUAL_CONCEPT_UUID = "a572149b-169e-075d-048b-b41350319fb1";
+	
+	public static final String AMOUNT_OF_PAIN_UNABLE_TO_DO_WORK_CONCEPT_UUID = "c8a327a0-01d4-0e6d-5ff7-7c5e51b10327";
+	
+	public static final String HAVE_YOU_FELT_CALM_AND_PEACEFUL_CONCEPT_UUID = "80bf1f1a-1476-7521-2596-ea6734704b96";
+	
+	public static final String HAD_A_LOT_OF_ENERGY_CONCEPT_UUID = "99fe3faf-2daf-013b-165f-faea4ccc3ad8";
+	
+	public static final String FELT_DISCOURAGED_AND_SAD_CONCEPT_UUID = "4f484415-3a5b-9f69-8d0a-49292547a03e";
+	
+	public static final String INTERFERENCE_WITH_SOCIAL_ACTIVITIES_CONCEPT_UUID = "4a29e455-192e-2556-16ed-3c471fe45830";
+	
 }
